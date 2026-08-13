@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company Login</title>
+    <link rel="stylesheet" href="{% static 'portal/company_login.css' %}">
+</head>
+<body>
+    <div class="company-login-container">
+        <h2>Company Login</h2>
+        {% if popup_message %}
+        <script>
+            alert("{{ popup_message }}");
+        </script>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <label for="company_registration_id">Registration ID:</label>
+            <input type="text" name="company_registration_id" id="company_registration_id" required>
+            <label for="company_registration_password">Password:</label>
+            <input type="password" name="company_registration_password" id="company_registration_password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

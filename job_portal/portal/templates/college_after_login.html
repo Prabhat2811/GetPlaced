@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>College Dashboard - {{ college.college_name }}</title>
+    
+    <link rel="stylesheet" href="{% static 'portal/college_after_login.css' %}">
+    <script>
+    function handleTicketFormSubmit(e, form) {
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Raising...';
+        var data = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: data
+        })
+        .then(response => response.json())
+        .then(data => {
+            let popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = 0;
+            popup.style.left = 0;
+            popup.style.width = '100vw';
+            popup.style.height = '100vh';
+            popup.style.background = 'rgba(0,0,0,0.5)';
+            popup.style.display = 'flex';
+            popup.style.alignItems = 'center';
+            popup.style.justifyContent = 'center';
+            let chatBtn = '';
+            if (data.chat_url && data.ticket_id) {
+                chatBtn = `<button type='button' class='go-to-chat-btn' data-ticket-id='${data.ticket_id}' style='display:inline-block;margin:16px 0;padding:10px 24px;background:#1976d2;color:#fff;border-radius:5px;text-decoration:none;font-weight:bold;'>Go to Chat</button>`;
+            } else {
+                chatBtn = `<button style='display:inline-block;margin:16px 0;padding:10px 24px;background:#b0b0b0;color:#fff;border-radius:5px;text-decoration:none;font-weight:bold;cursor:not-allowed;' disabled>Go to Chat</button><div style='color:#888;font-size:13px;'>Chat will be available once company connects.</div>`;
+            }
+            popup.innerHTML = `<div style='background:#fff;padding:30px 40px;border-radius:8px;text-align:center;'>
+                <h2>${data.success ? 'Ticket Raised!' : 'Ticket already raised!'}</h2>
+                ${chatBtn}
+                <button onclick='this.closest("#ticket-popup").remove()' style='margin-top:10px;padding:8px 18px;background:#1976d2;color:#fff;border:none;border-radius:4px;'>OK</button>
+            </div>`;
+            popup.id = 'ticket-popup';
+            document.body.appendChild(popup);
+            btn.textContent = data.success ? 'Ticket Raised' : 'Ticket already raised';
+            btn.style.background = '#43cea2';
+            btn.style.color = '#155724';
+            btn.disabled = true;
+            // Attach chat popup handler to the new button
+            setTimeout(function() {
+              var chatBtnEl = popup.querySelector('.go-to-chat-btn');
+              if (chatBtnEl) {
+                chatBtnEl.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var ticketId = chatBtnEl.getAttribute('data-ticket-id');
+                  if (ticketId) openChatModal(ticketId);
+                  return false;
+                });
+              }
+            }, 10);
+        })
+        .catch(() => {
+            btn.textContent = 'Error';
+            btn.disabled = false;
+        });
+        return false;
+    }
+    </script>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>{{ college.college_name }} Dashboard</h1>
+            <p>Welcome, {{ college.college_name }}!</p>
+            <a href="{% url 'index' %}">← Logout</a>
+            <a href="{% url 'add_student' college.id %}" style="margin-left:20px; padding:8px 16px; background:#1976d2; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">Add New Student</a>
+        </header>
+        <section>
+            <h2>Registered Students</h2>
+            <div class="table-card">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f0f0f0;">
+                            <th style="padding:8px;border:1px solid #ccc;">Image</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Name</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Reg No</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Branch</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Year</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Skills</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Email</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            {% if action == "edit" and student_to_edit.id == student.id %}
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="file" name="student_image" style="width:120px;">
+                                        {% if student_to_edit.student_image %}
+                                            <img src="{{ student_to_edit.student_image.url }}" alt="Student Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;margin-top:6px;">
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="text" name="student_name" value="{{ student_to_edit.student_name }}" style="width:120px;">
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="text" name="student_reg_no" value="{{ student_to_edit.student_reg_no }}" style="width:100px;">
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="text" name="student_branch" value="{{ student_to_edit.student_branch }}" style="width:90px;">
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="text" name="student_year" value="{{ student_to_edit.student_year }}" style="width:60px;">
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="text" name="student_skills" value="{{ student_to_edit.student_skills }}" style="width:120px;">
+                                    </td>
+                                    <td style="padding:8px;border:1px solid #ccc;">
+                                        <input type="email" name="student_email" value="{{ student_to_edit.student_email }}" style="width:150px;">
+                                    </td>
+                                    <td style="padding:8px 8px 8px 0;border:1px solid #ccc;white-space:nowrap;">
+                                        <button type="submit" style="padding:4px 12px;background:#1976d2;color:#fff;border-radius:3px;border:none;margin-right:8px;">Save</button>
+                                        <a href="{% url 'college_after_login' college.id %}" style="padding:4px 12px;background:#888;color:#fff;border-radius:3px;text-decoration:none;margin-left:0;">Cancel</a>
+                                    </td>
+                                </form>
+                            {% elif action == "delete" and student_to_delete.id == student.id %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <td colspan="8" style="padding:8px;border:1px solid #ccc;">
+                                        Are you sure you want to delete <strong>{{ student_to_delete.student_name }}</strong>?
+                                        <button type="submit" style="margin-left:16px;padding:4px 12px;background:#d32f2f;color:#fff;border-radius:3px;border:none;">Yes, Delete</button>
+                                        <a href="{% url 'college_after_login' college.id %}" style="margin-left:12px;padding:4px 12px;background:#888;color:#fff;border-radius:3px;text-decoration:none;">Cancel</a>
+                                    </td>
+                                </form>
+                            {% else %}
+                                <td style="padding:8px;border:1px solid #ccc;">
+                                    <img src="{{ student.student_image.url }}" alt="Student Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;">
+                                </td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_name }}</td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_reg_no }}</td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_branch }}</td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_year }}</td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_skills }}</td>
+                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_email }}</td>
+                                <td style="padding:8px 8px 8px 0;border:1px solid #ccc;white-space:nowrap;">
+                                    <a href="{% url 'college_after_login' college.id %}?action=edit&student_id={{ student.id }}" style="padding:4px 12px;background:#ffa000;color:#fff;border-radius:3px;text-decoration:none;margin-right:8px;">Edit</a>
+                                    <a href="{% url 'college_after_login' college.id %}?action=delete&student_id={{ student.id }}" style="padding:4px 12px;background:#d32f2f;color:#fff;border-radius:3px;text-decoration:none;">Delete</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align:center;color:#888;">No students registered yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section>
+            <h2>Active Job Openings</h2>
+            <div class="table-card">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f0f0f0;">
+                            <th style="padding:8px;border:1px solid #ccc;">Title</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Company</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Location</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Type</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Last Date</th>
+                            <th style="padding:8px;border:1px solid #ccc;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_title }}</td>
+                            <td style="padding:8px;border:1px solid #ccc;">{{ job.company.company_name }}</td>
+                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_location }}</td>
+                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_type }}</td>
+                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_last_date }}</td>
+                            <td style="padding:8px;border:1px solid #ccc;white-space:nowrap;">
+                                {% with found_ticket=None %}
+                                    {% for t in tickets %}
+                                        {% if t.company.id == job.company.id and t.is_active %}
+                                            {% with found_ticket=t %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if found_ticket %}
+                                        <button type="button" style="padding:4px 12px;background:#43cea2;color:#155724;border-radius:3px;border:none;cursor:not-allowed;" disabled>Ticket Raised</button>
+                                        {% if found_ticket.status == 'connect' %}
+                                            <button type="button" class="go-to-chat-btn" data-ticket-id="{{ found_ticket.id }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:3px;text-decoration:none;margin-left:6px;">Go to Chat</button>
+                                        {% endif %}
+                                    {% else %}
+                                        <form method="post" action="{% url 'raise_ticket' %}" style="display:inline;" onsubmit="return handleTicketFormSubmit(event, this);">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="college_id" value="{{ college.id }}">
+                                            <input type="hidden" name="company_id" value="{{ job.company.id }}">
+                                            <button type="submit" style="padding:4px 12px;background:#1976d2;color:#fff;border-radius:3px;border:none;">Raise Ticket</button>
+                                            
+                                        </form>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:#888;">No active jobs available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <!-- Chat Modal Popup -->
+<div id="chat-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
+  <div id="chat-modal-content" style="background:#fff;max-width:600px;width:95vw;min-height:300px;border-radius:8px;box-shadow:0 2px 16px #0003;padding:0;position:relative;">
+    <button onclick="closeChatModal()" style="position:absolute;top:8px;right:12px;background:#d32f2f;color:#fff;border:none;border-radius:3px;padding:4px 12px;font-weight:bold;cursor:pointer;">Close</button>
+    <div id="chat-modal-body" style="padding:24px 24px 12px 24px;"></div>
+  </div>
+</div>
+<script>
+function openChatModal(ticketId) {
+  var modal = document.getElementById('chat-modal');
+  var body = document.getElementById('chat-modal-body');
+  modal.style.display = 'flex';
+  body.innerHTML = '<div style="text-align:center;padding:40px;">Loading chat...</div>';
+  fetch(`/chat_box/${ticketId}/?college_id={{ college.id }}&ajax=1`)
+    .then(r => r.text())
+    .then(html => { body.innerHTML = html; scrollChatToBottom(); attachChatFormHandler(ticketId); });
+}
+function closeChatModal() {
+  document.getElementById('chat-modal').style.display = 'none';
+}
+function scrollChatToBottom() {
+  var chatDiv = document.getElementById('chat-messages');
+  if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+function attachChatFormHandler(ticketId) {
+  var form = document.getElementById('chat-form');
+  if (!form) return;
+  var textarea = form.querySelector('textarea[name="message"]');
+  if (textarea) {
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit ? form.requestSubmit() : form.submit();
+      }
+    });
+  }
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    var data = new FormData(form);
+    fetch(`/chat_box/${ticketId}/?college_id={{ college.id }}&ajax=1`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: data
+    })
+    .then(r => r.text())
+    .then(html => { document.getElementById('chat-modal-body').innerHTML = html; scrollChatToBottom(); attachChatFormHandler(ticketId); });
+    return false;
+  }
+}
+window.addEventListener('DOMContentLoaded', function() {
+  // Remove any default action for go-to-chat-btn buttons
+  document.querySelectorAll('.go-to-chat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var ticketId = btn.getAttribute('data-ticket-id');
+      if (ticketId) openChatModal(ticketId);
+      return false;
+    });
+  });
+  // Also keep event delegation for future dynamic buttons
+  document.body.addEventListener('click', function(e) {
+    var btn = e.target.closest('.go-to-chat-btn');
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      var ticketId = btn.getAttribute('data-ticket-id');
+      if (ticketId) openChatModal(ticketId);
+      return false;
+    }
+  });
+});
+</script>
+    <div class="bg-shapes">
+        <div class="bg-shape blue"></div>
+        <div class="bg-shape cyan"></div>
+        <div class="bg-shape yellow"></div>
+        <div class="bg-shape purple"></div>
+        <div class="bg-shape pink"></div>
+    </div>
+</body>
+</html>
