@@ -1,302 +1,194 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>College Dashboard - {{ college.college_name }}</title>
-    
-    <link rel="stylesheet" href="{% static 'portal/college_after_login.css' %}">
-    <script>
-    function handleTicketFormSubmit(e, form) {
-        e.preventDefault();
-        var btn = form.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        btn.textContent = 'Raising...';
-        var data = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: data
-        })
-        .then(response => response.json())
-        .then(data => {
-            let popup = document.createElement('div');
-            popup.style.position = 'fixed';
-            popup.style.top = 0;
-            popup.style.left = 0;
-            popup.style.width = '100vw';
-            popup.style.height = '100vh';
-            popup.style.background = 'rgba(0,0,0,0.5)';
-            popup.style.display = 'flex';
-            popup.style.alignItems = 'center';
-            popup.style.justifyContent = 'center';
-            let chatBtn = '';
-            if (data.chat_url && data.ticket_id) {
-                chatBtn = `<button type='button' class='go-to-chat-btn' data-ticket-id='${data.ticket_id}' style='display:inline-block;margin:16px 0;padding:10px 24px;background:#1976d2;color:#fff;border-radius:5px;text-decoration:none;font-weight:bold;'>Go to Chat</button>`;
-            } else {
-                chatBtn = `<button style='display:inline-block;margin:16px 0;padding:10px 24px;background:#b0b0b0;color:#fff;border-radius:5px;text-decoration:none;font-weight:bold;cursor:not-allowed;' disabled>Go to Chat</button><div style='color:#888;font-size:13px;'>Chat will be available once company connects.</div>`;
-            }
-            popup.innerHTML = `<div style='background:#fff;padding:30px 40px;border-radius:8px;text-align:center;'>
-                <h2>${data.success ? 'Ticket Raised!' : 'Ticket already raised!'}</h2>
-                ${chatBtn}
-                <button onclick='this.closest("#ticket-popup").remove()' style='margin-top:10px;padding:8px 18px;background:#1976d2;color:#fff;border:none;border-radius:4px;'>OK</button>
-            </div>`;
-            popup.id = 'ticket-popup';
-            document.body.appendChild(popup);
-            btn.textContent = data.success ? 'Ticket Raised' : 'Ticket already raised';
-            btn.style.background = '#43cea2';
-            btn.style.color = '#155724';
-            btn.disabled = true;
-            // Attach chat popup handler to the new button
-            setTimeout(function() {
-              var chatBtnEl = popup.querySelector('.go-to-chat-btn');
-              if (chatBtnEl) {
-                chatBtnEl.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  var ticketId = chatBtnEl.getAttribute('data-ticket-id');
-                  if (ticketId) openChatModal(ticketId);
-                  return false;
-                });
-              }
-            }, 10);
-        })
-        .catch(() => {
-            btn.textContent = 'Error';
-            btn.disabled = false;
-        });
-        return false;
-    }
-    </script>
-</head>
-<body>
-    <div class="main-container">
-        <header>
-            <h1>{{ college.college_name }} Dashboard</h1>
-            <p>Welcome, {{ college.college_name }}!</p>
-            <a href="{% url 'index' %}">← Logout</a>
-            <a href="{% url 'add_student' college.id %}" style="margin-left:20px; padding:8px 16px; background:#1976d2; color:#fff; border-radius:4px; text-decoration:none; font-weight:bold;">Add New Student</a>
-        </header>
-        <section>
-            <h2>Registered Students</h2>
-            <div class="table-card">
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f0f0f0;">
-                            <th style="padding:8px;border:1px solid #ccc;">Image</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Name</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Reg No</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Branch</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Year</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Skills</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Email</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in students %}
-                        <tr>
-                            {% if action == "edit" and student_to_edit.id == student.id %}
-                                <form method="post" enctype="multipart/form-data">
-                                    {% csrf_token %}
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="file" name="student_image" style="width:120px;">
-                                        {% if student_to_edit.student_image %}
-                                            <img src="{{ student_to_edit.student_image.url }}" alt="Student Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;margin-top:6px;">
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="text" name="student_name" value="{{ student_to_edit.student_name }}" style="width:120px;">
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="text" name="student_reg_no" value="{{ student_to_edit.student_reg_no }}" style="width:100px;">
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="text" name="student_branch" value="{{ student_to_edit.student_branch }}" style="width:90px;">
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="text" name="student_year" value="{{ student_to_edit.student_year }}" style="width:60px;">
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="text" name="student_skills" value="{{ student_to_edit.student_skills }}" style="width:120px;">
-                                    </td>
-                                    <td style="padding:8px;border:1px solid #ccc;">
-                                        <input type="email" name="student_email" value="{{ student_to_edit.student_email }}" style="width:150px;">
-                                    </td>
-                                    <td style="padding:8px 8px 8px 0;border:1px solid #ccc;white-space:nowrap;">
-                                        <button type="submit" style="padding:4px 12px;background:#1976d2;color:#fff;border-radius:3px;border:none;margin-right:8px;">Save</button>
-                                        <a href="{% url 'college_after_login' college.id %}" style="padding:4px 12px;background:#888;color:#fff;border-radius:3px;text-decoration:none;margin-left:0;">Cancel</a>
-                                    </td>
-                                </form>
-                            {% elif action == "delete" and student_to_delete.id == student.id %}
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <td colspan="8" style="padding:8px;border:1px solid #ccc;">
-                                        Are you sure you want to delete <strong>{{ student_to_delete.student_name }}</strong>?
-                                        <button type="submit" style="margin-left:16px;padding:4px 12px;background:#d32f2f;color:#fff;border-radius:3px;border:none;">Yes, Delete</button>
-                                        <a href="{% url 'college_after_login' college.id %}" style="margin-left:12px;padding:4px 12px;background:#888;color:#fff;border-radius:3px;text-decoration:none;">Cancel</a>
-                                    </td>
-                                </form>
-                            {% else %}
-                                <td style="padding:8px;border:1px solid #ccc;">
-                                    <img src="{{ student.student_image.url }}" alt="Student Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;">
-                                </td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_name }}</td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_reg_no }}</td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_branch }}</td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_year }}</td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_skills }}</td>
-                                <td style="padding:8px;border:1px solid #ccc;">{{ student.student_email }}</td>
-                                <td style="padding:8px 8px 8px 0;border:1px solid #ccc;white-space:nowrap;">
-                                    <a href="{% url 'college_after_login' college.id %}?action=edit&student_id={{ student.id }}" style="padding:4px 12px;background:#ffa000;color:#fff;border-radius:3px;text-decoration:none;margin-right:8px;">Edit</a>
-                                    <a href="{% url 'college_after_login' college.id %}?action=delete&student_id={{ student.id }}" style="padding:4px 12px;background:#d32f2f;color:#fff;border-radius:3px;text-decoration:none;">Delete</a>
-                                </td>
-                            {% endif %}
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" style="text-align:center;color:#888;">No students registered yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        <section>
-            <h2>Active Job Openings</h2>
-            <div class="table-card">
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f0f0f0;">
-                            <th style="padding:8px;border:1px solid #ccc;">Title</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Company</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Location</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Type</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Last Date</th>
-                            <th style="padding:8px;border:1px solid #ccc;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for job in jobs %}
-                        <tr>
-                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_title }}</td>
-                            <td style="padding:8px;border:1px solid #ccc;">{{ job.company.company_name }}</td>
-                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_location }}</td>
-                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_type }}</td>
-                            <td style="padding:8px;border:1px solid #ccc;">{{ job.job_last_date }}</td>
-                            <td style="padding:8px;border:1px solid #ccc;white-space:nowrap;">
-                                {% with found_ticket=None %}
-                                    {% for t in tickets %}
-                                        {% if t.company.id == job.company.id and t.is_active %}
-                                            {% with found_ticket=t %}{% endwith %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if found_ticket %}
-                                        <button type="button" style="padding:4px 12px;background:#43cea2;color:#155724;border-radius:3px;border:none;cursor:not-allowed;" disabled>Ticket Raised</button>
-                                        {% if found_ticket.status == 'connect' %}
-                                            <button type="button" class="go-to-chat-btn" data-ticket-id="{{ found_ticket.id }}" style="background:#1976d2;color:#fff;padding:4px 12px;border-radius:3px;text-decoration:none;margin-left:6px;">Go to Chat</button>
-                                        {% endif %}
-                                    {% else %}
-                                        <form method="post" action="{% url 'raise_ticket' %}" style="display:inline;" onsubmit="return handleTicketFormSubmit(event, this);">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="college_id" value="{{ college.id }}">
-                                            <input type="hidden" name="company_id" value="{{ job.company.id }}">
-                                            <button type="submit" style="padding:4px 12px;background:#1976d2;color:#fff;border-radius:3px;border:none;">Raise Ticket</button>
-                                            
-                                        </form>
-                                    {% endif %}
-                                {% endwith %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" style="text-align:center;color:#888;">No active jobs available.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
+{% extends "base.html" %}
+{% block title %}{{ college.college_name }} — Dashboard{% endblock %}
+
+{% block extra_style %}
+  .dash-head{display:flex;align-items:center;gap:16px;margin-bottom:32px;flex-wrap:wrap;}
+  .dash-head img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid var(--line);}
+  .tab-row{display:inline-flex;border:1px solid var(--line);border-radius:6px;padding:3px;margin-bottom:22px;background:var(--paper-2);}
+  .tab-btn{background:transparent;border:none;padding:9px 16px;font-size:13.5px;font-weight:500;color:var(--slate);border-radius:4px;cursor:pointer;}
+  .tab-btn.active{background:var(--ink);color:var(--paper);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .job-card{background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:12px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;}
+  .job-card .jtitle{font-family:'Fraunces',serif;font-size:16px;}
+  .job-card .jmeta{font-size:13px;color:var(--slate);margin-top:4px;}
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="dash-head">
+    <img src="{{ college.college_logo.url }}" alt="{{ college.college_name }} logo">
+    <div>
+      <div class="eyebrow mono">College dashboard</div>
+      <h1 style="font-size:24px;">{{ college.college_name }}</h1>
     </div>
-    <!-- Chat Modal Popup -->
-<div id="chat-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
-  <div id="chat-modal-content" style="background:#fff;max-width:600px;width:95vw;min-height:300px;border-radius:8px;box-shadow:0 2px 16px #0003;padding:0;position:relative;">
-    <button onclick="closeChatModal()" style="position:absolute;top:8px;right:12px;background:#d32f2f;color:#fff;border:none;border-radius:3px;padding:4px 12px;font-weight:bold;cursor:pointer;">Close</button>
-    <div id="chat-modal-body" style="padding:24px 24px 12px 24px;"></div>
+  </div>
+
+  {% if action == 'edit' and student_to_edit %}
+    <div class="card" style="max-width:520px;margin-bottom:28px;">
+      <h2 style="font-size:18px;margin-bottom:16px;">Edit student</h2>
+      <form method="post" enctype="multipart/form-data" action="?action=edit&amp;student_id={{ student_to_edit.id }}">
+        {% csrf_token %}
+        <div class="field"><label>Name</label><input type="text" name="student_name" value="{{ student_to_edit.student_name }}" required></div>
+        <div class="grid-2">
+          <div class="field"><label>Registration no.</label><input type="text" name="student_reg_no" value="{{ student_to_edit.student_reg_no }}" required></div>
+          <div class="field"><label>Branch</label><input type="text" name="student_branch" value="{{ student_to_edit.student_branch }}" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Year</label><input type="text" name="student_year" value="{{ student_to_edit.student_year }}" required></div>
+          <div class="field"><label>Skills</label><input type="text" name="student_skills" value="{{ student_to_edit.student_skills }}" required></div>
+        </div>
+        <div class="field"><label>Email</label><input type="email" name="student_email" value="{{ student_to_edit.student_email }}" required></div>
+        <div class="field"><label>Photo (optional)</label><input type="file" name="student_image" accept="image/*"></div>
+        <div class="row-actions">
+          <button class="btn btn-solid" type="submit">Save changes</button>
+          <a class="btn btn-ghost" href="{% url 'college_after_login' college.id %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if action == 'delete' and student_to_delete %}
+    <div class="card" style="max-width:480px;margin-bottom:28px;border-color:var(--red);">
+      <h2 style="font-size:18px;margin-bottom:10px;">Remove {{ student_to_delete.student_name }}?</h2>
+      <p style="color:var(--slate);font-size:14px;margin-bottom:18px;">This can't be undone.</p>
+      <form method="post" action="?action=delete&amp;student_id={{ student_to_delete.id }}">
+        {% csrf_token %}
+        <div class="row-actions">
+          <button class="btn btn-danger" type="submit">Remove student</button>
+          <a class="btn btn-ghost" href="{% url 'college_after_login' college.id %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="tab-row" role="tablist">
+    <button class="tab-btn active" data-tab="students">Students</button>
+    <button class="tab-btn" data-tab="jobs">Open jobs</button>
+    <button class="tab-btn" data-tab="tickets">Requests</button>
+  </div>
+
+  <div class="tab-panel active" id="panel-students">
+    <div class="section-head">
+      <h2 style="font-size:19px;">Students ({{ students|length }})</h2>
+      <a class="btn btn-solid btn-sm" href="{% url 'add_student' college.id %}">Add student</a>
+    </div>
+    {% if students %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Reg. no.</th><th>Branch</th><th>Year</th><th>Skills</th><th></th></tr></thead>
+        <tbody>
+        {% for s in students %}
+          <tr>
+            <td>{{ s.student_name }}</td>
+            <td>{{ s.student_reg_no }}</td>
+            <td>{{ s.student_branch }}</td>
+            <td>{{ s.student_year }}</td>
+            <td>{{ s.student_skills }}</td>
+            <td class="row-actions">
+              <a class="btn btn-ghost btn-sm" href="?action=edit&amp;student_id={{ s.id }}">Edit</a>
+              <a class="btn btn-danger btn-sm" href="?action=delete&amp;student_id={{ s.id }}">Remove</a>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><h3>No students yet</h3><p>Add your first student to get started.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="tab-panel" id="panel-jobs">
+    <div class="section-head"><h2 style="font-size:19px;">Open jobs ({{ jobs|length }})</h2></div>
+    {% if jobs %}
+      {% for j in jobs %}
+      <div class="job-card">
+        <div>
+          <div class="jtitle">{{ j.job_title }} &middot; {{ j.company.company_name }}</div>
+          <div class="jmeta">{{ j.job_location }} &middot; {{ j.job_type }} &middot; {{ j.job_skills_required }}{% if j.job_salary != "N/A" %} &middot; {{ j.job_salary }}{% endif %}</div>
+        </div>
+        <button class="btn btn-solid btn-sm raise-ticket-btn" data-company-id="{{ j.company.id }}" data-college-id="{{ college.id }}">Raise ticket</button>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-state"><h3>No open jobs right now</h3><p>Check back once companies post new roles.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="tab-panel" id="panel-tickets">
+    <div class="section-head"><h2 style="font-size:19px;">Connection requests ({{ tickets|length }})</h2></div>
+    {% if tickets %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Company</th><th>Status</th><th>Requested</th><th></th></tr></thead>
+        <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td>{{ t.company.company_name }}</td>
+            <td>
+              {% if t.status == 'connect' %}<span class="pill pill-connect">Connected</span>
+              {% elif t.status == 'rejected' %}<span class="pill pill-rejected">Rejected</span>
+              {% else %}<span class="pill pill-pending">Pending</span>{% endif %}
+            </td>
+            <td>{{ t.created_at|date:"d M Y" }}</td>
+            <td>
+              {% if t.status == 'connect' %}
+              <a class="btn btn-solid btn-sm" href="{% url 'chat_box' t.id %}?college_id={{ college.id }}">Open chat</a>
+              {% else %}
+              <span style="color:var(--slate);font-size:13px;">Awaiting response</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><h3>No requests yet</h3><p>Raise a ticket from the "Open jobs" tab to connect with a company.</p></div>
+    {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_script %}
 <script>
-function openChatModal(ticketId) {
-  var modal = document.getElementById('chat-modal');
-  var body = document.getElementById('chat-modal-body');
-  modal.style.display = 'flex';
-  body.innerHTML = '<div style="text-align:center;padding:40px;">Loading chat...</div>';
-  fetch(`/chat_box/${ticketId}/?college_id={{ college.id }}&ajax=1`)
-    .then(r => r.text())
-    .then(html => { body.innerHTML = html; scrollChatToBottom(); attachChatFormHandler(ticketId); });
-}
-function closeChatModal() {
-  document.getElementById('chat-modal').style.display = 'none';
-}
-function scrollChatToBottom() {
-  var chatDiv = document.getElementById('chat-messages');
-  if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
-}
-function attachChatFormHandler(ticketId) {
-  var form = document.getElementById('chat-form');
-  if (!form) return;
-  var textarea = form.querySelector('textarea[name="message"]');
-  if (textarea) {
-    textarea.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        form.requestSubmit ? form.requestSubmit() : form.submit();
-      }
-    });
-  }
-  form.onsubmit = function(e) {
-    e.preventDefault();
-    var data = new FormData(form);
-    fetch(`/chat_box/${ticketId}/?college_id={{ college.id }}&ajax=1`, {
-      method: 'POST',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
-      body: data
-    })
-    .then(r => r.text())
-    .then(html => { document.getElementById('chat-modal-body').innerHTML = html; scrollChatToBottom(); attachChatFormHandler(ticketId); });
-    return false;
-  }
-}
-window.addEventListener('DOMContentLoaded', function() {
-  // Remove any default action for go-to-chat-btn buttons
-  document.querySelectorAll('.go-to-chat-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var ticketId = btn.getAttribute('data-ticket-id');
-      if (ticketId) openChatModal(ticketId);
-      return false;
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     });
   });
-  // Also keep event delegation for future dynamic buttons
-  document.body.addEventListener('click', function(e) {
-    var btn = e.target.closest('.go-to-chat-btn');
-    if (btn) {
-      e.preventDefault();
-      e.stopPropagation();
-      var ticketId = btn.getAttribute('data-ticket-id');
-      if (ticketId) openChatModal(ticketId);
-      return false;
-    }
+
+  function getCookie(name){
+    var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+  document.querySelectorAll('.raise-ticket-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      var body = new URLSearchParams();
+      body.append('college_id', btn.dataset.collegeId);
+      body.append('company_id', btn.dataset.companyId);
+      body.append('message', 'Request to connect');
+      fetch('{% url "raise_ticket" %}', {
+        method: 'POST', body: body,
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+      }).then(function(r){ return r.json(); }).then(function(data){
+        if(data.success){
+          btn.textContent = 'Request sent';
+        } else if(data.status){
+          btn.textContent = data.status === 'connect' ? 'Already connected' : 'Already pending';
+        } else {
+          btn.textContent = 'Raise ticket';
+          btn.disabled = false;
+        }
+      });
+    });
   });
-});
 </script>
-    <div class="bg-shapes">
-        <div class="bg-shape blue"></div>
-        <div class="bg-shape cyan"></div>
-        <div class="bg-shape yellow"></div>
-        <div class="bg-shape purple"></div>
-        <div class="bg-shape pink"></div>
-    </div>
-</body>
-</html>
+{% endblock %}

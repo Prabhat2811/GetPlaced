@@ -1,26 +1,33 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>College Login</title>
-    <link rel="stylesheet" href="{% static 'portal/college_login.css' %}">
-</head>
-<body>
-    <div class="login-container">
-        <h2>College Login</h2>
-        <form method="post">
-            {% csrf_token %}
-            <label for="college_registration_id">Registration ID:</label>
-            <input type="text" name="college_registration_id" id="college_registration_id" required>
-            <label for="college_registration_password">Password:</label>
-            <input type="password" name="college_registration_password" id="college_registration_password" required>
-            <button type="submit">Login</button>
-        </form>
-    </div>
-    {% if popup_message %}
-    <script>
-        alert("{{ popup_message }}");
-    </script>
-    {% endif %}
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}College login — GetPlaced{% endblock %}
+
+{% block content %}
+<div class="wrap" style="max-width:440px;">
+  <div class="page-head">
+    <div class="eyebrow mono">College login</div>
+    <h1>Welcome back</h1>
+    <p>Log in to manage students, browse jobs, and track your connection requests.</p>
+  </div>
+
+  {% if popup_message %}
+    <div class="form-msg error">{{ popup_message }}</div>
+  {% endif %}
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label for="college_registration_id">Registration ID</label>
+        <input type="text" id="college_registration_id" name="college_registration_id" required autofocus>
+      </div>
+      <div class="field">
+        <label for="college_registration_password">Password</label>
+        <input type="password" id="college_registration_password" name="college_registration_password" required>
+      </div>
+      <button class="btn btn-solid btn-block" type="submit">Log in</button>
+    </form>
+  </div>
+
+  <p style="margin-top:18px;font-size:13.5px;color:var(--slate);">New college? <a href="{% url 'college_register' %}" style="color:var(--gold-dark);">Register here</a></p>
+</div>
+{% endblock %}

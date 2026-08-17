@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}GetPlaced{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16233F; --ink-2:#2A3B5E;
+    --gold:#C9974C; --gold-dark:#8F6A2E; --gold-bg:#FBF3E7; --gold-glow:rgba(201,151,76,0.5);
+    --slate:#5B6B85; --paper:#F7F7F4; --paper-2:#FFFFFF; --line:#E3E1D8;
+    --teal:#2F8F6E; --teal-bg:#E4F2EC; --teal-glow:rgba(47,143,110,0.4);
+    --red:#B3432E; --red-bg:#FBEAE5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;min-width:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+  img{max-width:100%;display:block;}
+  :focus-visible{outline:2px solid var(--gold-dark);outline-offset:2px;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 5vw;width:100%;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 5vw;background:rgba(247,247,244,0.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);}
+  .logo{font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+  .logo span{color:var(--gold-dark);}
+  .navlinks{display:flex;gap:clamp(14px,3vw,28px);font-size:14px;color:var(--slate);flex-wrap:wrap;}
+  .navlinks a:hover{color:var(--ink);}
+  .navcta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+  .btn{font-size:14px;font-weight:500;padding:10px 18px;border-radius:3px;border:1px solid var(--ink);cursor:pointer;white-space:nowrap;background:transparent;color:var(--ink);transition:transform .12s ease,background .15s,box-shadow .25s ease;display:inline-flex;align-items:center;gap:6px;}
+  .btn:active{transform:scale(0.97);}
+  .btn-ghost:hover{background:rgba(22,35,63,0.05);}
+  .btn-solid{background:var(--ink);color:var(--paper);}
+  .btn-solid:hover{background:var(--ink-2);box-shadow:0 0 0 4px var(--gold-glow);}
+  .btn-danger{border-color:var(--red);color:var(--red);}
+  .btn-danger:hover{background:var(--red-bg);}
+  .btn-sm{padding:7px 14px;font-size:13px;}
+  .btn-block{width:100%;justify-content:center;}
+
+  main{min-height:60vh;padding:clamp(28px,5vw,48px) 0;}
+  .page-head{margin-bottom:32px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.08em;color:var(--gold-dark);text-transform:uppercase;margin-bottom:10px;}
+  .page-head h1{font-size:clamp(26px,4vw,38px);}
+  .page-head p{color:var(--slate);margin-top:8px;max-width:560px;}
+
+  /* CARD */
+  .card{background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:clamp(22px,4vw,32px);}
+  .card + .card{margin-top:16px;}
+
+  /* FORMS */
+  form .field{margin-bottom:18px;}
+  form label{display:block;font-size:13px;font-weight:500;color:var(--ink-2);margin-bottom:6px;}
+  form input[type=text],form input[type=email],form input[type=password],form input[type=tel],form input[type=url],form input[type=date],form input[type=number],form select,form textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:4px;font-size:14px;font-family:inherit;background:var(--paper-2);color:var(--ink);transition:border-color .15s,box-shadow .15s;
+  }
+  form input:focus,form select:focus,form textarea:focus{border-color:var(--gold-dark);box-shadow:0 0 0 3px var(--gold-bg);outline:none;}
+  form textarea{resize:vertical;min-height:100px;}
+  form input[type=file]{width:100%;padding:9px 0;font-size:13.5px;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 20px;}
+  .hint{font-size:12px;color:var(--slate);margin-top:4px;}
+  .form-msg{padding:12px 16px;border-radius:4px;font-size:13.5px;margin-bottom:20px;}
+  .form-msg.success{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal);}
+  .form-msg.error{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--slate);padding:10px 12px;border-bottom:1px solid var(--line);}
+  tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper-2);}
+  .table-wrap table{min-width:520px;}
+  .row-actions{display:flex;gap:8px;}
+
+  /* BADGE / PILL */
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;letter-spacing:0.02em;white-space:nowrap;display:inline-block;}
+  .pill-pending{background:var(--gold-bg);color:var(--gold-dark);border:1px solid var(--gold);}
+  .pill-connect{background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal);}
+  .pill-rejected{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+
+  /* GRID OF CARDS (colleges/companies list) */
+  .entity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .entity-card{background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:10px;}
+  .entity-card .logo-row{display:flex;align-items:center;gap:12px;}
+  .entity-card .logo-row img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--line);}
+  .entity-card .ename{font-family:'Fraunces',serif;font-size:17px;font-weight:500;}
+  .entity-card .eloc{font-size:13px;color:var(--slate);}
+  .entity-card .stars{color:var(--gold);font-size:13px;letter-spacing:1px;}
+
+  .empty-state{border:1px dashed var(--line);border-radius:8px;padding:36px 24px;text-align:center;color:var(--slate);}
+  .empty-state h3{color:var(--ink);margin-bottom:6px;font-size:17px;}
+
+  footer{border-top:1px solid var(--line);padding:26px 5vw 44px;max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  footer .f-logo{font-family:'Fraunces',serif;font-size:16px;font-weight:600;}
+  footer .f-meta{font-size:13px;color:var(--slate);}
+  footer .f-meta a{color:var(--gold-dark);}
+
+  @media(max-width:820px){.navlinks{display:none;}}
+  {% block extra_style %}{% endblock %}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="{% url 'index' %}">Get<span>Placed</span></a>
+  <div class="navlinks">
+    <a href="{% url 'college_list' %}">Colleges</a>
+    <a href="{% url 'company_list' %}">Companies</a>
+  </div>
+  <div class="navcta">
+    <a class="btn btn-ghost btn-sm" href="{% url 'college_login' %}">College login</a>
+    <a class="btn btn-ghost btn-sm" href="{% url 'company_login' %}">Company login</a>
+    <a class="btn btn-solid btn-sm" href="{% url 'college_register' %}">Register</a>
+  </div>
+</nav>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+  <a class="f-logo" href="{% url 'index' %}">Get<span style="color:var(--gold-dark);">Placed</span></a>
+  <div class="f-meta">Built with Django &middot; <a href="https://github.com/Prabhat2811/GetPlaced">github.com/Prabhat2811/GetPlaced</a></div>
+</footer>
+
+{% block extra_script %}{% endblock %}
+</body>
+</html>

@@ -1,38 +1,68 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Company Registration</title>
-    <link rel="stylesheet" href="{% static 'portal/company_register.css' %}">
-</head>
-<body>
-    <div class="company-register-container">
-        <h2>Company Registration</h2>
-        {% if submitted %}
-            <p style="color:green;">Registration successful! Please wait for admin verification.</p>
-        {% endif %}
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <label for="company_name">Company Name:</label>
-            <input type="text" name="company_name" id="company_name" required>
-            <label for="company_location">Location:</label>
-            <input type="text" name="company_location" id="company_location" required>
-            <label for="company_logo">Logo:</label>
-            <input type="file" name="company_logo" id="company_logo">
-            <label for="company_website">Website:</label>
-            <input type="url" name="company_website" id="company_website">
-            <label for="company_mobile">Mobile No:</label>
-            <input type="text" name="company_mobile" id="company_mobile">
-            <label for="company_email">Email:</label>
-            <input type="email" name="company_email" id="company_email">
-            <label for="company_description">Description:</label>
-            <textarea name="company_description" id="company_description" rows="4"></textarea>
-            <label for="company_registration_id">Registration ID:</label>
-            <input type="text" name="company_registration_id" id="company_registration_id" required>
-            <label for="company_registration_password">Registration Password:</label>
-            <input type="password" name="company_registration_password" id="company_registration_password" required>
-            <button type="submit">Register</button>
-        </form>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Register your company — GetPlaced{% endblock %}
+
+{% block content %}
+<div class="wrap" style="max-width:680px;">
+  <div class="page-head">
+    <div class="eyebrow mono">Company registration</div>
+    <h1>Register your company</h1>
+    <p>Your account stays pending until an admin verifies it — after that you can post jobs and receive connection requests.</p>
+  </div>
+
+  {% if submitted %}
+    <div class="form-msg success">Registration submitted. You'll be able to log in once an admin verifies your company.</div>
+  {% endif %}
+
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="grid-2">
+        <div class="field">
+          <label for="company_name">Company name</label>
+          <input type="text" id="company_name" name="company_name" required>
+        </div>
+        <div class="field">
+          <label for="company_location">Location</label>
+          <input type="text" id="company_location" name="company_location" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="company_website">Website</label>
+          <input type="url" id="company_website" name="company_website" placeholder="https://">
+        </div>
+        <div class="field">
+          <label for="company_mobile">Contact number</label>
+          <input type="tel" id="company_mobile" name="company_mobile">
+        </div>
+      </div>
+      <div class="field">
+        <label for="company_email">Contact email</label>
+        <input type="email" id="company_email" name="company_email" required>
+      </div>
+      <div class="field">
+        <label for="company_description">About the company</label>
+        <textarea id="company_description" name="company_description" placeholder="A short description colleges will see"></textarea>
+      </div>
+      <div class="field">
+        <label for="company_logo">Company logo</label>
+        <input type="file" id="company_logo" name="company_logo" accept="image/*">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="company_registration_id">Choose a registration ID</label>
+          <input type="text" id="company_registration_id" name="company_registration_id" required>
+          <div class="hint">This is what you'll log in with.</div>
+        </div>
+        <div class="field">
+          <label for="company_registration_password">Choose a password</label>
+          <input type="password" id="company_registration_password" name="company_registration_password" required>
+        </div>
+      </div>
+      <button class="btn btn-solid btn-block" type="submit">Submit for verification</button>
+    </form>
+  </div>
+
+  <p style="margin-top:18px;font-size:13.5px;color:var(--slate);">Already registered? <a href="{% url 'company_login' %}" style="color:var(--gold-dark);">Log in</a></p>
+</div>
+{% endblock %}

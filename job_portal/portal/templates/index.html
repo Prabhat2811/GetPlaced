@@ -1,277 +1,131 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>GetPlaced - Job Portal</title>
-    <link rel="icon" href="{% static 'menuLogo.png' %}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'portal/style.css' %}">
-    <link rel="stylesheet" href="{% static 'portal/search_results.css' %}">
-</head>
-<body>
-    <div class="changes">
-        <!--git hub changes-->
-    </div>
-    <!--Animted floating rocket-->
-    <div class="rocket-bg">
-    <img src="{% static 'rockett.png' %}" class="rocket rocket-1">
-    <img src="{% static 'rockett.png' %}" class="rocket rocket-2">
-    <img src="{% static 'rockett.png' %}" class="rocket rocket-3">
+{% block title %}GetPlaced — Where colleges meet companies{% endblock %}
+
+{% block extra_style %}
+  .hero{padding:clamp(28px,7vw,56px) 5vw 40px;max-width:1120px;margin:0 auto;}
+  .eyebrow-dot{display:inline-flex;align-items:center;gap:8px;}
+  .eyebrow-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);animation:ping 2.2s ease-out infinite;}
+  @keyframes ping{0%{box-shadow:0 0 0 0 var(--gold-glow);}70%{box-shadow:0 0 0 6px rgba(201,151,76,0);}100%{box-shadow:0 0 0 0 rgba(201,151,76,0);}}
+  h1.hero-title{font-size:clamp(30px,6vw,54px);line-height:1.06;max-width:760px;}
+  h1.hero-title em{font-style:italic;color:var(--gold-dark);font-weight:400;}
+  .sub{font-size:clamp(15px,2vw,17px);color:var(--slate);max-width:520px;margin:20px 0 26px;}
+  .search-box{display:flex;gap:10px;max-width:560px;margin-bottom:34px;flex-wrap:wrap;}
+  .search-box input{flex:1;min-width:220px;padding:13px 16px;border:1px solid var(--line);border-radius:4px;font-size:14px;}
+  .search-box input:focus{border-color:var(--gold-dark);outline:none;box-shadow:0 0 0 3px var(--gold-bg);}
+  #searchLive{max-width:560px;margin-top:-16px;margin-bottom:30px;}
+  #searchLive .result-row{padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;display:flex;justify-content:space-between;}
+  #searchLive .result-row:last-child{border-bottom:none;}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:clamp(36px,6vw,56px);}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:clamp(36px,7vw,56px) 0;}
+  .stat{padding:22px clamp(14px,3vw,28px);border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .num{font-family:'Fraunces',serif;font-size:clamp(22px,3.4vw,30px);}
+  .stat .label{font-size:13px;color:var(--slate);margin-top:4px;}
+  .section-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+  .section-head h2{font-size:clamp(20px,3vw,28px);}
+  .section-block{margin-bottom:clamp(44px,7vw,72px);}
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="eyebrow mono eyebrow-dot">College &times; company placement network</div>
+  <h1 class="hero-title">Placement drives shouldn't run on <em>email threads.</em></h1>
+  <p class="sub">GetPlaced connects verified colleges with hiring companies through one workflow — post students, list openings, raise a request, and chat once you're connected.</p>
+
+  <form class="search-box" action="{% url 'job_search' %}" method="get">
+    <input type="text" name="q" id="liveSearch" placeholder="Search colleges, companies, or jobs" autocomplete="off" value="{{ request.GET.q|default:'' }}">
+    <button class="btn btn-solid" type="submit">Search</button>
+  </form>
+  <div id="searchLive"></div>
+
+  <div class="hero-ctas">
+    <a class="btn btn-solid" href="{% url 'college_register' %}">Register your college</a>
+    <a class="btn btn-ghost" href="{% url 'company_register' %}">Register your company</a>
+  </div>
 </div>
 
-    <!-- Animated floating shapes background -->
-    <div class="bg-shapes">
-        <div class="bg-shape blue"></div>
-        <div class="bg-shape cyan"></div>
-        <div class="bg-shape yellow"></div>
-        <div class="bg-shape purple"></div>
-        <div class="bg-shape pink"></div>
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="num">{{ sample_colleges|length }}+</div><div class="label">Featured colleges</div></div>
+    <div class="stat"><div class="num">{{ sample_companies|length }}+</div><div class="label">Featured companies</div></div>
+    <div class="stat"><div class="num mono">Live</div><div class="label">Search across the network</div></div>
+    <div class="stat"><div class="num mono">Verified</div><div class="label">Admin-checked accounts</div></div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-head">
+      <h2>Featured colleges</h2>
+      <a href="{% url 'college_list' %}" class="mono" style="font-size:13px;color:var(--slate);">Browse all colleges &rarr;</a>
     </div>
-    <header>
-        <div class="headLogo">
-            <img src="{% static 'logo4.png' %}" alt="Logo" class="circle-logo">
+    {% if sample_colleges %}
+    <div class="entity-grid">
+      {% for c in sample_colleges %}
+      <div class="entity-card">
+        <div class="logo-row">
+          <img src="{{ c.college_logo.url }}" alt="{{ c.college_name }} logo">
+          <div>
+            <div class="ename">{{ c.college_name }}</div>
+            <div class="eloc">{{ c.college_location }}</div>
+          </div>
         </div>
-        <h1 class="section-title">GetPlaced</h1>
-        <p class="subtitle">Your Gateway to Dream Jobs</p>
-    </header>
-    <nav>
-        <a href="#">Home</a>
-        <a href="company_list">Companies</a>
-        <a href="college_list">Colleges</a>
-        <div class="nav-dropdown">
-            <a href="#">Login &#9662;</a>
-            <div class="dropdown-login">
-                <a href="{% url 'college_login' %}">College Login</a>
-                <a href="{% url 'company_login' %}">Company Login</a>
-            </div>
-        </div>
-        <div class="nav-dropdown">
-            <a href="#">Register &#9662;</a>
-            <div class="dropdown-register">
-                <a href="{% url 'college_register' %}">College Register</a>
-                <a href="{% url 'company_register' %}">Company Register</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Quick stats section -->
-    <section class="stats-section">
-        <div class="stats-container">
-            <div class="stat-block">
-                <div class="feature-icon">🎓</div>
-                <div class="stat-number">{{ college_count|default:"4" }}</div>
-                <div class="stat-label">Colleges</div>
-            </div>
-            <div class="stat-block">
-                <div class="feature-icon">🏢</div>
-                <div class="stat-number">{{ company_count|default:"2" }}</div>
-                <div class="stat-label">Companies</div>
-            </div>
-            <div class="stat-block">
-                <div class="feature-icon">💼</div>
-                <div class="stat-number">{{ job_count|default:"1" }}</div>
-                <div class="stat-label">Jobs Posted</div>
-            </div>
-            <div class="stat-block">
-                <div class="feature-icon">🚀</div>
-                <div class="stat-number">{{ placed_count|default:"3" }}</div>
-                <div class="stat-label">Students Placed</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Call to action for students -->
-    <div class="cta-student">
-        <a href="{% url 'job_search' %}" class="accent-btn">
-            <span style="vertical-align:middle;">🔎</span> Start Your Job Search Now
-        </a>
+        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= c.college_rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</div>
+      </div>
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-state"><h3>No verified colleges yet</h3><p>Once a college registers and is approved, it'll show up here.</p></div>
+    {% endif %}
+  </div>
 
-    <div class="cta-panels">
-        <div class="cta-panel">
-            <a href="{% url 'college_register' %}" class="accent-btn">Register Your College</a>
-            <br>
-            <a href="{% url 'college_login' %}" class="accent-btn">Login Your College</a>
-        </div>
-        <div class="cta-panel">
-            <a href="{% url 'company_register' %}" class="accent-btn">Register Your Company</a>
-            <br>
-            <a href="{% url 'company_login' %}" class="accent-btn">Login Your Company</a>
-        </div>
+  <div class="section-block">
+    <div class="section-head">
+      <h2>Featured companies</h2>
+      <a href="{% url 'company_list' %}" class="mono" style="font-size:13px;color:var(--slate);">Browse all companies &rarr;</a>
     </div>
-
-    <div class="container">
-        <div class="hero">
-            <h1>Find Your Next Opportunity</h1>
-            <p>Search thousands of jobs from top companies and kickstart your career today!</p>
+    {% if sample_companies %}
+    <div class="entity-grid">
+      {% for co in sample_companies %}
+      <div class="entity-card">
+        <div class="logo-row">
+          <img src="{{ co.company_logo.url }}" alt="{{ co.company_name }} logo">
+          <div>
+            <div class="ename">{{ co.company_name }}</div>
+            <div class="eloc">{{ co.company_location }}</div>
+          </div>
         </div>
-        <form class="search-bar" action="{% url 'job_search' %}" method="get" id="searchForm">
-            <input type="text" name="q" id="searchInput" placeholder="Search colleges, companies, jobs by name..." autocomplete="off">
-            <button type="submit">Search</button>
-        </form>
-        <div id="searchResults" class="search-results" style="display:none;">
-            <div id="collegesResults" class="results-section"></div>
-            <div id="companiesResults" class="results-section"></div>
-            <div id="jobsResults" class="results-section"></div>
-        </div>
-        <div class="features">
-            <div class="feature">
-                <h3>Colleges</h3>
-                <ul class="feature-list">
-                    {% for c in sample_colleges %}
-                        <li class="sample-item">
-                            <a href="{% url 'college_list' %}?q={{ c.college_name|urlencode }}">
-                                <span class="item-title">{{ c.college_name }}</span>
-                                <span class="item-meta">{{ c.college_city }}</span>
-                            </a>
-                        </li>                       
-                    {% empty %}
-                        <li class="sample-item">No colleges yet.</li>
-                    {% endfor %}
-                </ul>
-                <a href="{% url 'college_list' %}" class="accent-btn feature-btn">View Colleges</a>
-            </div>
-            <div class="feature">
-                <h3>Companies</h3>
-                <ul class="feature-list">
-                    {% for c in sample_companies %}
-                        <li class="sample-item">
-                            <a href="{% url 'company_list' %}?q={{ c.company_name|urlencode }}">
-                                <span class="item-title">{{ c.company_name }}</span>
-                                <span class="item-meta">{{ c.company_city }}</span>
-                            </a>
-                        </li>
-                    {% empty %}
-                        <li class="sample-item">No companies yet.</li>
-                    {% endfor %}
-                </ul>
-                <a href="{% url 'company_list' %}" class="accent-btn feature-btn">View Companies</a>
-            </div>
-        </div>
-        <!-- Testimonials Section -->
-        <div class="testimonials-section">
-            <h2 class="section-title">Success Stories</h2>
-            <div class="testimonials">
-                <div class="card">
-                    <div class="testimonial-icon">🌟</div>
-                    <div class="testimonial-name">Priya S., IIT Delhi</div>
-                    <div class="testimonial-text">"GetPlaced helped me land my dream job at Google. The process was smooth and the opportunities were endless!"</div>
-                </div>
-                <div class="card">
-                    <div class="testimonial-icon">🌟</div>
-                    <div class="testimonial-name">Rahul M., NIT Trichy</div>
-                    <div class="testimonial-text">"I found internships and full-time roles from top companies. Highly recommended for all students!"</div>
-                </div>
-                <div class="card">
-                    <div class="testimonial-icon">🌟</div>
-                    <div class="testimonial-name">Ayesha K., VIT</div>
-                    <div class="testimonial-text">"The best platform for connecting with recruiters. The UI is beautiful and easy to use."</div>
-                </div>
-            </div>
-        </div>
-        <!-- FAQ Section -->
-        <div class="faq-section">
-            <h2 class="section-title">Frequently Asked Questions</h2>
-            <div class="faq-list">
-                <details class="card">
-                    <summary>How do I register as a student?</summary>
-                    <div>Click the "Register as Student" button above and fill out the registration form with your details.</div>
-                </details>
-                <details class="card">
-                    <summary>Is there any fee to use GetPlaced?</summary>
-                    <div>No, GetPlaced is completely free for students, colleges, and companies.</div>
-                </details>
-                <details class="card">
-                    <summary>How can companies post jobs?</summary>
-                    <div>Companies can register and log in to their dashboard to post jobs and manage applications.</div>
-                </details>
-            </div>
-        </div>
+        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= co.company_rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</div>
+      </div>
+      {% endfor %}
     </div>
-    <footer>
-        <div class="footer-links">
-            <a href="#">About</a> |
-            <a href="#">Contact</a> |
-            <a href="#">Privacy Policy</a>
-        </div>
-        &copy; 2025 GetPlaced. All rights reserved.
-    </footer>
-    <!-- Floating Action Button -->
-    <a href="{% url 'job_search' %}" class="fab" title="Quick Job Search">
-        <span style="font-size:1.6em;">🔎</span>
-    </a>
-    <script src="{% static 'portal/main.js' %}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const searchResults = document.getElementById('searchResults');
-            let searchTimeout;
+    {% else %}
+    <div class="empty-state"><h3>No verified companies yet</h3><p>Once a company registers and is approved, it'll show up here.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
 
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                const query = this.value.trim();
-                
-                if (query.length < 2) {
-                    searchResults.style.display = 'none';
-                    return;
-                }
-
-                searchTimeout = setTimeout(() => {
-                    fetch(`/search?q=${encodeURIComponent(query)}&ajax=true`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Update colleges
-                            const collegesHtml = data.colleges.map(college => `
-                                <a href="/college_list?q=${encodeURIComponent(college.college_name)}" class="search-item">
-                                    <img src="${college.college_logo}" alt="${college.college_name}" class="search-logo">
-                                    <div class="search-item-content">
-                                        <h4>${college.college_name}</h4>
-                                        <p>${college.college_location}</p>
-                                    </div>
-                                </a>
-                            `).join('');
-                            document.getElementById('collegesResults').innerHTML = 
-                                data.colleges.length ? `<h3>Colleges</h3>${collegesHtml}` : '';
-
-                            // Update companies
-                            const companiesHtml = data.companies.map(company => `
-                                <a href="/company_list?q=${encodeURIComponent(company.company_name)}" class="search-item">
-                                    <img src="${company.company_logo}" alt="${company.company_name}" class="search-logo">
-                                    <div class="search-item-content">
-                                        <h4>${company.company_name}</h4>
-                                        <p>${company.company_location}</p>
-                                    </div>
-                                </a>
-                            `).join('');
-                            document.getElementById('companiesResults').innerHTML = 
-                                data.companies.length ? `<h3>Companies</h3>${companiesHtml}` : '';
-
-                            // Update jobs
-                            const jobsHtml = data.jobs.map(job => `
-                                <a href="/job_search?q=${encodeURIComponent(job.job_title)}" class="search-item">
-                                    <img src="${job.company_logo}" alt="${job.company_name}" class="search-logo">
-                                    <div class="search-item-content">
-                                        <h4>${job.job_title}</h4>
-                                        <p>${job.company_name} • ${job.job_location}</p>
-                                    </div>
-                                </a>
-                            `).join('');
-                            document.getElementById('jobsResults').innerHTML = 
-                                data.jobs.length ? `<h3>Jobs</h3>${jobsHtml}` : '';
-
-                            searchResults.style.display = 'block';
-                        });
-                }, 300);
-            });
-
-            // Hide results when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!searchResults.contains(e.target) && e.target !== searchInput) {
-                    searchResults.style.display = 'none';
-                }
-            });
+{% block extra_script %}
+<script>
+  var input = document.getElementById('liveSearch');
+  var live = document.getElementById('searchLive');
+  var timer = null;
+  input.addEventListener('input', function(){
+    clearTimeout(timer);
+    var q = input.value.trim();
+    if(!q){ live.innerHTML=''; return; }
+    timer = setTimeout(function(){
+      fetch('{% url "job_search" %}?q=' + encodeURIComponent(q) + '&ajax=true')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var rows = [];
+          data.colleges.forEach(function(c){ rows.push('<div class="result-row"><span>' + c.college_name + '</span><span style="color:var(--slate)">' + c.college_location + '</span></div>'); });
+          data.companies.forEach(function(c){ rows.push('<div class="result-row"><span>' + c.company_name + '</span><span style="color:var(--slate)">' + c.company_location + '</span></div>'); });
+          data.jobs.forEach(function(j){ rows.push('<div class="result-row"><span>' + j.job_title + ' &middot; ' + j.company_name + '</span><span style="color:var(--slate)">' + j.job_location + '</span></div>'); });
+          live.innerHTML = rows.length ? '<div class="card">' + rows.join('') + '</div>' : '<div class="card" style="color:var(--slate);font-size:13.5px;">No matches yet.</div>';
         });
-    </script>
-</body>
-</html>
+    }, 250);
+  });
+</script>
+{% endblock %}

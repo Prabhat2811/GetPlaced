@@ -1,26 +1,35 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Students - {{ college.college_name }}</title>
-    <link rel="stylesheet" href="{% static 'portal/style.css' %}">
-</head>
-<body>
-    <h2>Add New Student for {{ college.college_name }}</h2>
-    <form method="post" enctype="multipart/form-data" style="max-width:400px;">
-        {% csrf_token %}
-        <input type="text" name="student_name" placeholder="Student Name" required style="width:100%;margin-bottom:8px;"><br>
-        <input type="text" name="student_reg_no" placeholder="Registration No" required style="width:100%;margin-bottom:8px;"><br>
-        <input type="text" name="student_branch" placeholder="Branch" required style="width:100%;margin-bottom:8px;"><br>
-        <input type="text" name="student_year" placeholder="Year" required style="width:100%;margin-bottom:8px;"><br>
-        <input type="text" name="student_skills" placeholder="Skills" style="width:100%;margin-bottom:8px;"><br>
-        <input type="file" name="student_image" style="margin-bottom:8px;"><br>
-        <input type="text" name="student_mobile_no" placeholder="Mobile No" style="width:100%;margin-bottom:8px;"><br>
-        <input type="email" name="student_email" placeholder="Email" style="width:100%;margin-bottom:8px;"><br>
-        <button type="submit" style="padding:8px 18px; background:#1976d2; color:#fff; border:none; border-radius:4px; font-weight:bold;">Add Student</button>
+{% extends "base.html" %}
+{% block title %}Add student — {{ college.college_name }}{% endblock %}
+
+{% block content %}
+<div class="wrap" style="max-width:560px;">
+  <div class="page-head">
+    <div class="eyebrow mono">{{ college.college_name }}</div>
+    <h1>Add a student</h1>
+  </div>
+
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="field"><label for="student_name">Full name</label><input type="text" id="student_name" name="student_name" required></div>
+      <div class="grid-2">
+        <div class="field"><label for="student_reg_no">Registration no.</label><input type="text" id="student_reg_no" name="student_reg_no" required></div>
+        <div class="field"><label for="student_branch">Branch</label><input type="text" id="student_branch" name="student_branch" required></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label for="student_year">Year</label><input type="text" id="student_year" name="student_year" placeholder="e.g. Final year" required></div>
+        <div class="field"><label for="student_skills">Skills</label><input type="text" id="student_skills" name="student_skills" placeholder="e.g. Java, React" required></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label for="student_mobile_no">Contact number</label><input type="tel" id="student_mobile_no" name="student_mobile_no"></div>
+        <div class="field"><label for="student_email">Email</label><input type="email" id="student_email" name="student_email" required></div>
+      </div>
+      <div class="field"><label for="student_image">Photo</label><input type="file" id="student_image" name="student_image" accept="image/*"></div>
+      <div class="row-actions">
+        <button class="btn btn-solid" type="submit">Add student</button>
+        <a class="btn btn-ghost" href="{% url 'college_after_login' college.id %}">Cancel</a>
+      </div>
     </form>
-    <br>
-    <a href="{% url 'college_after_login' college.id %}">← Back to Dashboard</a>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

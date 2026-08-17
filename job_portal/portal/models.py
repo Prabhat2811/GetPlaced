@@ -3,7 +3,9 @@ from django.contrib.auth.hashers import make_password, is_password_usable
 
 # Create your models here.
 
-# models for college entity
+# models :-
+
+#college entity
 class college (models.Model):
     college_name = models.CharField(max_length = 100, default = 'N/A')
     college_location = models.CharField(max_length = 100, default = 'N/A')
@@ -24,7 +26,8 @@ class college (models.Model):
     
     class Meta:
         db_table = "college"
-        
+
+#student entity
 class student (models.Model):
     student_name = models.CharField(max_length = 100, default = 'N/A')
     student_reg_no = models.CharField(max_length = 20, default = 'N/A')
@@ -42,6 +45,8 @@ class student (models.Model):
     class Meta:
         db_table = "student"
 
+
+#company entity
 class company (models.Model):
     company_name = models.CharField(max_length = 100, default = 'N/A')
     company_location = models.CharField(max_length = 100, default = 'N/A')
@@ -80,6 +85,8 @@ class job(models.Model):
     class Meta:
         db_table = "job"
 
+
+#ticket entity
 class ticket(models.Model):
     college = models.ForeignKey(college, on_delete=models.CASCADE, related_name='tickets')
     company = models.ForeignKey(company, on_delete=models.CASCADE, related_name='tickets')
@@ -96,6 +103,8 @@ class ticket(models.Model):
         db_table = 'ticket'
         unique_together = ('college', 'company', 'is_active')
 
+
+#ChatMessage entity
 class ChatMessage(models.Model):
     ticket = models.ForeignKey(ticket, on_delete=models.CASCADE, related_name='messages')
     sender = models.CharField(max_length=20)  # 'College' or 'Company'

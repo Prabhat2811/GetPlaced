@@ -1,62 +1,74 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>College Registration</title>
-    <link rel="stylesheet" href="{% static 'portal/college_register.css' %}">
-</head>
-<body>
-    <div class="register-container">
-        <h2>College Registration Form</h2>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <label for="id_college_name">College Name</label>
-            <input type="text" name="college_name" id="id_college_name" maxlength="100" required>
+{% extends "base.html" %}
+{% block title %}Register your college — GetPlaced{% endblock %}
 
-            <label for="id_college_location">Location</label>
-            <input type="text" name="college_location" id="id_college_location" maxlength="100" required>
+{% block content %}
+<div class="wrap" style="max-width:680px;">
+  <div class="page-head">
+    <div class="eyebrow mono">College registration</div>
+    <h1>Register your college</h1>
+    <p>Your account stays pending until an admin verifies it — after that you'll appear in search and the public directory.</p>
+  </div>
 
-            <label for="id_college_university">University</label>
-            <input type="text" name="college_university" id="id_college_university" maxlength="100" required>
+  {% if submitted %}
+    <div class="form-msg success">Registration submitted. You'll be able to log in once an admin verifies your college.</div>
+  {% endif %}
 
-            <label for="id_college_logo">Logo</label>
-            <input type="file" name="college_logo" id="id_college_logo" accept="image/*">
-
-            <label for="id_college_website">Website</label>
-            <input type="url" name="college_website" id="id_college_website" maxlength="200" required>
-
-            <label for="id_college_mobile_no">Mobile No</label>
-            <input type="text" name="college_mobile_no" id="id_college_mobile_no" maxlength="15" required>
-
-            <label for="id_college_email">Email</label>
-            <input type="email" name="college_email" id="id_college_email" maxlength="100" required>
-
-            <label for="id_college_description">Description</label>
-            <textarea name="college_description" id="id_college_description" rows="4"></textarea>
-
-            <label for="college_registration_id">Registration ID:</label>
-            <input type="text" name="college_registration_id" id="college_registration_id" required>
-            
-            <label for="college_registration_password">Registration Password:</label>
-            <input type="password" name="college_registration_password" id="college_registration_password" required>
-            
-
-            <button type="submit">Register</button>
-        </form>
-    </div>
-    {% if submitted %}
-    <div id="popup" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
-        <div style="background:#fff;padding:30px 40px;border-radius:8px;text-align:center;">
-            <h2>College registration form submitted!</h2>
-            <h3>Wait for admin approval</h3>
-            <button onclick="document.getElementById('popup').style.display='none';window.location.href=window.location.href;">OK</button>
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="grid-2">
+        <div class="field">
+          <label for="college_name">College name</label>
+          <input type="text" id="college_name" name="college_name" required>
         </div>
-    </div>
-    <script>
-        // Optionally, reset the form after submission
-        document.querySelector('form').reset();
-    </script>
-    {% endif %}
-</body>
-</html>
+        <div class="field">
+          <label for="college_university">Affiliated university</label>
+          <input type="text" id="college_university" name="college_university" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="college_location">Location</label>
+          <input type="text" id="college_location" name="college_location" required>
+        </div>
+        <div class="field">
+          <label for="college_website">Website</label>
+          <input type="url" id="college_website" name="college_website" placeholder="https://">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="college_mobile_no">Contact number</label>
+          <input type="tel" id="college_mobile_no" name="college_mobile_no" required>
+        </div>
+        <div class="field">
+          <label for="college_email">Contact email</label>
+          <input type="email" id="college_email" name="college_email" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="college_description">About the college</label>
+        <textarea id="college_description" name="college_description" placeholder="A short description placement teams and companies will see"></textarea>
+      </div>
+      <div class="field">
+        <label for="college_logo">College logo</label>
+        <input type="file" id="college_logo" name="college_logo" accept="image/*">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="college_registration_id">Choose a registration ID</label>
+          <input type="text" id="college_registration_id" name="college_registration_id" required>
+          <div class="hint">This is what you'll log in with.</div>
+        </div>
+        <div class="field">
+          <label for="college_registration_password">Choose a password</label>
+          <input type="password" id="college_registration_password" name="college_registration_password" required>
+        </div>
+      </div>
+      <button class="btn btn-solid btn-block" type="submit">Submit for verification</button>
+    </form>
+  </div>
+
+  <p style="margin-top:18px;font-size:13.5px;color:var(--slate);">Already registered? <a href="{% url 'college_login' %}" style="color:var(--gold-dark);">Log in</a></p>
+</div>
+{% endblock %}
